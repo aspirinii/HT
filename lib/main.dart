@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-import 'fdot.dart';
+import 'dart:math';
+// import 'fdot.dart';
 // import 'package:floating_dots/floating_dots.dart';
+import 'package:get/get.dart';
+
 
 void main() => runApp(MaterialApp(home:MyApp()));
 
@@ -13,8 +16,28 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   bool _isElevated = false;
 
+  final colorizeColors = [
+  Colors.grey[500]!,
+  Colors.black,
+  Colors.grey[500]!,
+  ];
+
+  final colorizeTextStyle = TextStyle(
+  fontSize: 50.0,
+  fontFamily: 'Horizon',
+  );
+
+
   @override
   Widget build(BuildContext context){
+
+    double width = MediaQuery.of(context).size.width;
+    double height = MediaQuery.of(context).size.height;
+    var padding = MediaQuery.of(context).padding;
+    double safeHeight = height - padding.top - padding.bottom;
+
+
+
     return Scaffold(
       backgroundColor: Colors.grey[300],
       body: Stack(
@@ -45,24 +68,10 @@ class _MyAppState extends State<MyApp> {
               ),
             ),
           ),
-          Center(
-            child: FloatingDotGroup(
-              number: 500,
-              direction: Direction.up,
-              trajectory: Trajectory.straight,
-              size: DotSize.small,
-              colors: [
-                Colors.red,
-                Colors.green,
-                Colors.blue,
-                Colors.yellow,
-                Colors.purple,
-                Colors.orange
-              ],
-              opacity: 0.5,
-              speed: DotSpeed.slow,
-            ),
-          ),
+          Positioned(
+            top: Random().nextInt(safeHeight.floor()).toDouble(),
+            right : Random().nextInt(width.floor()).toDouble(),
+            child: Text("I love you")),
           Center(
             child : GestureDetector(
               onTap: (){

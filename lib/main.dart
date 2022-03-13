@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'fdot.dart';
@@ -5,54 +7,42 @@ import 'fdot.dart';
 import 'package:get/get.dart';
 import 'dart:ui';
 import 'dart:async';
+import 'package:csv/csv.dart';
+// import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/services.dart';//rootbundle
 
 
 void main() => runApp(GetMaterialApp(home:Home()));
 
-class Controller2 extends GetxController{
-  var count = 0.obs;
-  increment(){
-    count.value =Random().nextInt(10);
-    // count++;
-  }
-
-}
-
-
-class Home2 extends StatelessWidget {
-
-  @override
-  Widget build(context) {
-
-    // Get.put()을 사용하여 클래스를 인스턴스화하여 모든 "child'에서 사용가능하게 합니다.
-    final Controller2 b = Get.put(Controller2());
-    
-    return Scaffold(
-      // count가 변경 될 때마다 Obx(()=> 를 사용하여 Text()에 업데이트합니다.
-      appBar: AppBar(title: Obx(() => Text("Clicks: ${b.count}"))),
-
-      // 8줄의 Navigator.push를 간단한 Get.to()로 변경합니다. context는 필요없습니다.
-      body: Center(child: ElevatedButton(
-              child: Text("Go to Other"), onPressed: () => Get.to(Other()))),
-      floatingActionButton:
-          FloatingActionButton(child: Icon(Icons.add), onPressed: b.increment));
-  }
-}
-
-class Other extends StatelessWidget {
-  // 다른 페이지에서 사용되는 컨트롤러를 Get으로 찾아서 redirect 할 수 있습니다.
-  final Controller2 b = Get.find();
-
-  @override
-  Widget build(context){
-     // 업데이트된 count 변수에 연결
-    return Scaffold(body: Center(child: Text("${b.count}")));
-  }
-}
-
-
-
 class Controller extends GetxController{
+
+
+  List numberList = [];
+  late List<List<dynamic>> _data;
+  late Future<List<List<dynamic>>> _data2;
+
+
+  Future<List<List<dynamic>>> _loadCSV() async {
+    final _rawData = await rootBundle.loadString("assets/htda.csv");
+    // List<List<dynamic>> _listData =  await CsvToListConverter().convert(_rawData);
+    List<List<dynamic>> _listData =  const CsvToListConverter().convert(_rawData);
+    print('rawData $_rawData');
+    print('_listData $_listData');
+    print('_csvdata (global _data) : $_listData');
+
+    _data = _listData;
+
+    return _listData;
+  }
+
+  @override
+  onInit() {
+    // _dataRequiredForBuild = _fetchAllData();
+
+    _data2 = _loadCSV();
+    print('onInit start');
+  }
+
   var pixelRatio = Get.pixelRatio;
   // //Size in physical pixels
   var physicalScreenSize = Get.size;
@@ -79,7 +69,11 @@ class Controller extends GetxController{
   RxDouble textHeightSeed = 90.0.obs;
   RxDouble textWidthSeed = 110.0.obs;
   RxBool _visible = false.obs;
-
+  int rIndex = 0;
+  RandomIndex(){
+    rIndex = Random().nextInt(_data.length-1);
+  //  return rIndex
+  }
   RandomeSeed(){
     // physicalWidth = physicalScreenSize.width;
     // physicalHeight = physicalScreenSize.height; 
@@ -92,18 +86,26 @@ class Controller extends GetxController{
     // padding = window.padding;
 
   //Safe area paddings in logical pixels
+    print("");
     paddingLeft = window.padding.left / window.devicePixelRatio;
     paddingRight = window.padding.right / window.devicePixelRatio;
     paddingTop = window.padding.top / window.devicePixelRatio;
     paddingBottom = window.padding.bottom / window.devicePixelRatio;
 
   //Safe area in logical pixels
+
     safeWidth = logicalWidth - paddingLeft - paddingRight;
     safeHeight = logicalHeight - paddingTop - paddingBottom;
+    print(logicalWidth);
+    print("get Ratio ${Get.pixelRatio}");
+    print("windowsdevicePecelRatio ${window.devicePixelRatio}");
+    print("safeWidth $safeWidth safe Height $safeHeight");
+
     textHeightSeed.value = Random().nextInt(safeHeight.floor()).toDouble();
-    textWidthSeed.value = Random().nextInt(safeWidth.floor()).toDouble();
+    textWidthSeed.value = Random().nextInt(safeWidth.floor()-100).toDouble();
+
     _visible.value = true;
-    Timer(Duration(seconds: 5),(){
+    Timer(Duration(seconds: 2),(){
       _visible.value = false;
     });
   }
@@ -113,39 +115,46 @@ class Controller extends GetxController{
 class Home  extends StatelessWidget {
   // const Home ({ Key? key }) : super(key: key); //필요없낭? 잘모르겟당
 
+
   @override
   Widget build(BuildContext context){
 
     final Controller c = Get.put(Controller());
 
-    // double width = MediaQuery.of(context).size.width;
-    // double height = MediaQuery.of(context).size.height;
-    // var padding = MediaQuery.of(context).padding;
-    // double safeHeight = height - padding.top - padding.bottom;
-
-    // RxDouble textHeightSeed = Random().nextInt(safeHeight.floor()).toDouble().obs;
-    // RxDouble textWidthSeed = Random().nextInt(width.floor()).toDouble().obs;
-
     return Scaffold(
       backgroundColor: Colors.grey[300],
       body: Stack(
         children: [
-          Obx(()=>Positioned(
-              top: c.textHeightSeed.value,
-              right : c.textWidthSeed.value,
-              child:AnimatedOpacity(
-          // If the widget is visible, animate to 0.0 (invisible).
-            // If the widget is hidden, animate to 1.0 (fully visible).
-              opacity: c._visible.value ? 1.0 : 0.0,
-              duration: const Duration(milliseconds: 500),
-              // The green box must be a child of the AnimatedOpacity widget.
-              child: Stack(
-                  children: [
-                    Text("${c.textHeightSeed} I love you"),
-                  ],
-                )),
-            ),
+
+          FutureBuilder(
+            future: c._data2,
+            builder:  (BuildContext context, AsyncSnapshot snapshot){
+              if (snapshot.hasData) {
+                return Obx(()=>Positioned(
+                    top: c.textHeightSeed.value,
+                    left : c.textWidthSeed.value,
+                    child:AnimatedOpacity(
+                    opacity: c._visible.value ? 1.0 : 0.0,
+                    duration: const Duration(milliseconds: 500),
+                    // The green box must be a child of the AnimatedOpacity widget.
+                    child: Stack(
+                        children: [
+                          // Text("${c._data[Random().nextInt(c._data.length-1)][1]}", 
+                          Text("${snapshot.data[c.rIndex][0]}", 
+                          style:TextStyle(fontSize:24)),
+                        ],
+                      )),
+                  ),
+                );
+              return CircularProgressIndicator();
+            } else if (snapshot.hasError) {
+              return Text('스냅샷 에러');
+            } else {
+              return Text('혹시 몰라서 else문 추가');
+            }
+            },
           ),
+
           FloatingDotGroup(
           number: 10,
           direction: Direction.up,
@@ -168,6 +177,7 @@ class Home  extends StatelessWidget {
           ),
           onTap: (){
             c.RandomeSeed();
+            c.RandomIndex();
           },
           )
         ),

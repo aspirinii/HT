@@ -24,7 +24,6 @@ class Controller extends GetxController{
 
   Future<List<List<dynamic>>> _loadCSV() async {
     final _rawData = await rootBundle.loadString("assets/htda.csv");
-    // List<List<dynamic>> _listData =  await CsvToListConverter().convert(_rawData);
     List<List<dynamic>> _listData =  const CsvToListConverter().convert(_rawData);
     print('rawData $_rawData');
     print('_listData $_listData');
@@ -41,6 +40,7 @@ class Controller extends GetxController{
 
     _data2 = _loadCSV();
     print('onInit start');
+    // RandomIndex();
   }
 
   var pixelRatio = Get.pixelRatio;
@@ -75,18 +75,7 @@ class Controller extends GetxController{
   //  return rIndex
   }
   RandomeSeed(){
-    // physicalWidth = physicalScreenSize.width;
-    // physicalHeight = physicalScreenSize.height; 
 
-  //Size in logical pixels
-    // logicalWidth = window.physicalSize.width / pixelRatio;
-    // logicalHeight = window.physicalSize.height / pixelRatio;
-
-  //Padding in physical pixels
-    // padding = window.padding;
-
-  //Safe area paddings in logical pixels
-    print("");
     paddingLeft = window.padding.left / window.devicePixelRatio;
     paddingRight = window.padding.right / window.devicePixelRatio;
     paddingTop = window.padding.top / window.devicePixelRatio;
@@ -96,10 +85,10 @@ class Controller extends GetxController{
 
     safeWidth = logicalWidth - paddingLeft - paddingRight;
     safeHeight = logicalHeight - paddingTop - paddingBottom;
-    print(logicalWidth);
-    print("get Ratio ${Get.pixelRatio}");
-    print("windowsdevicePecelRatio ${window.devicePixelRatio}");
-    print("safeWidth $safeWidth safe Height $safeHeight");
+    // print(logicalWidth);
+    // print("get Ratio ${Get.pixelRatio}");
+    // print("windowsdevicePecelRatio ${window.devicePixelRatio}");
+    // print("safeWidth $safeWidth safe Height $safeHeight");
 
     textHeightSeed.value = Random().nextInt(safeHeight.floor()).toDouble();
     textWidthSeed.value = Random().nextInt(safeWidth.floor()-100).toDouble();
@@ -122,67 +111,77 @@ class Home  extends StatelessWidget {
     final Controller c = Get.put(Controller());
 
     return Scaffold(
-      backgroundColor: Colors.grey[300],
-      body: Stack(
-        children: [
 
-          FutureBuilder(
-            future: c._data2,
-            builder:  (BuildContext context, AsyncSnapshot snapshot){
-              if (snapshot.hasData) {
-                return Obx(()=>Positioned(
-                    top: c.textHeightSeed.value,
-                    left : c.textWidthSeed.value,
-                    child:AnimatedOpacity(
-                    opacity: c._visible.value ? 1.0 : 0.0,
-                    duration: const Duration(milliseconds: 500),
-                    // The green box must be a child of the AnimatedOpacity widget.
-                    child: Stack(
-                        children: [
-                          // Text("${c._data[Random().nextInt(c._data.length-1)][1]}", 
-                          Text("${snapshot.data[c.rIndex][0]}", 
-                          style:TextStyle(fontSize:24)),
-                        ],
-                      )),
-                  ),
-                );
-              return CircularProgressIndicator();
-            } else if (snapshot.hasError) {
-              return Text('스냅샷 에러');
-            } else {
-              return Text('혹시 몰라서 else문 추가');
-            }
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+              begin: Alignment.topRight,
+              end: Alignment.bottomLeft,
+              colors: [
+                // Color(0xFFE3170A),
+                Color(0xFFA9E5BB),
+                // Color(0xFFFCF6B1),
+                Color(0xFFF7B32B)
+              ],
+          ),
+        ),
+        child: Stack(
+          children: [
+            FutureBuilder(
+              future: c._data2,
+              builder:  (BuildContext context, AsyncSnapshot snapshot){
+                if (snapshot.hasData) {
+                  return Obx(()=>Positioned(
+                      top: c.textHeightSeed.value,
+                      left : c.textWidthSeed.value,
+                      child:AnimatedOpacity(
+                      opacity: c._visible.value ? 1.0 : 0.0,
+                      duration: const Duration(milliseconds: 500),
+                      // The green box must be a child of the AnimatedOpacity widget.
+                      child: Container(
+                          child: Text("${snapshot.data[c.rIndex][0]}", 
+                            style:TextStyle(fontSize:24)),
+                          
+                        )),
+                    ),
+                  );
+                return CircularProgressIndicator();
+              } else if (snapshot.hasError) {
+                return Text('스냅샷 에러');
+              } else {
+                return Text('혹시 몰라서 else문 추가');
+              }
+              },
+            ),
+
+            FloatingDotGroup(
+            number: 40,
+            direction: Direction.up,
+            trajectory: Trajectory.straight,
+            size: DotSize.small,
+            colors: [
+             Color(0xFFA8E6CE), 
+              Color(0xFFDCEDC2),
+              Color(0xFFFFD3B5),
+              Color(0xFFFFAAA6),
+              Color(0xFFFF8C94)
+            ],
+            opacity: 0.5,
+            speed: DotSpeed.slow,
+          ),
+          Center(child: InkWell(child: Container(
+              padding: EdgeInsets.all(12.0),
+              child: Text("Touch me", style: TextStyle(fontSize: 24),),
+            ),
+            onTap: (){
+              c.RandomeSeed();
+              c.RandomIndex();
             },
+            )
           ),
 
-          FloatingDotGroup(
-          number: 10,
-          direction: Direction.up,
-          trajectory: Trajectory.straight,
-          size: DotSize.small,
-          colors: [
-            Colors.red,
-            Colors.green,
-            Colors.blue,
-            Colors.yellow,
-            Colors.purple,
-            Colors.orange
-          ],
-          opacity: 0.5,
-          speed: DotSpeed.slow,
+        ],
         ),
-        Center(child: InkWell(child: Container(
-            padding: EdgeInsets.all(12.0),
-            child: Text("Touch me", style: TextStyle(fontSize: 24),),
-          ),
-          onTap: (){
-            c.RandomeSeed();
-            c.RandomIndex();
-          },
-          )
-        ),
-
-      ],
       )
     );
   }

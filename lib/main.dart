@@ -13,6 +13,32 @@ import 'package:flutter/services.dart'; //rootbundle
 
 void main() => runApp(GetMaterialApp(home: Home()));
 
+class randomPostion {
+  randomPostion(dl, sh, sw) {
+    dataLength = dl;
+    safeHeight = sh;
+    safeWidth = sw;
+  }
+  late int dataLength;
+  late double safeHeight;
+  late double safeWidth;
+
+  RxDouble textHeightSeed = 90.0.obs;
+  RxDouble textWidthSeed = 110.0.obs;
+  RxBool _visible = false.obs;
+  RxInt rIndex = 0.obs;
+
+  RandomPostionVisible() {
+    rIndex.value = Random().nextInt(dataLength - 1);
+    textHeightSeed.value = Random().nextInt(safeHeight.floor()).toDouble();
+    textWidthSeed.value = Random().nextInt(safeWidth.floor() - 100).toDouble();
+    _visible.value = true;
+    Timer(const Duration(seconds: 2), () {
+      _visible.value = false;
+    });
+  }
+}
+
 class Controller extends GetxController {
   List numberList = [];
   late List<dynamic> _data;
